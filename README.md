@@ -90,24 +90,6 @@ text
 
 ---
 
-## 🔄 Flowchart: Workspace & Backend Initialization
-```
-flowchart TD
-  A(Start: Clone repo & select env) --> B(terraform init with backend-config)
-  B --> C{Workspace exists?}
-  C -- No --> D(terraform workspace new [env])
-  D --> E(terraform workspace select [env])
-  C -- Yes --> E
-  E --> F(terraform plan with var-file)
-  F --> G(terraform apply with var-file)
-  G --> H(State saved in remote backend under [env] folder)
-```
-
-
-*Example*: `{env}` can be `dev`, `prod`, or `qa`.
-
----
-
 ## 🗂️ Folder Structure Overview
 
 | Folder/File      | Description                                  |
