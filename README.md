@@ -19,7 +19,7 @@ A robust template for managing multiple environments (dev, staging, prod) in Ter
 
 ## ⚡ Quick Setup
 
-bash ```
+ ```
 git clone https://github.com/MAHALAKSHMImahalakshmi/terraform-multi-env.git
 cd terraform-multi-env
 
@@ -31,3 +31,46 @@ terraform workspace select dev
 terraform plan -var-file=environments/dev.tfvars
 terraform apply -var-file=environments/dev.tfvars
 ```
+
+---
+
+## 🛠️ Environment Separation
+
+- Isolated environments via Terraform Workspaces (`terraform workspace` commands)
+- Unique variable definitions per environment in `environments/*.tfvars`
+- Supports adding, updating, or destroying each environment independently
+
+---
+
+## 🚀 Deployment
+
+1. **Switch to desired workspace**  
+   `terraform workspace select <env>`
+2. **Plan & apply with corresponding tfvars**  
+   `terraform plan -var-file=environments/<env>.tfvars`  
+   `terraform apply -var-file=environments/<env>.tfvars`
+
+---
+
+## 📁 Project Structure
+
+| Path                   | Purpose                                        |
+|------------------------|------------------------------------------------|
+| `main.tf`              | Core Terraform resources and modules           |
+| `variables.tf`         | Input variables definition                     |
+| `environments/`        | Environment-specific `.tfvars` files           |
+| `modules/`             | Shared/reusable Terraform modules              |
+| `.gitignore`           | Excludes sensitive or rebuildable files        |
+| `README.md`            | Project documentation                          |
+
+---
+
+## 💡 Best Practices
+
+- Parameterize everything—never hard-code environment values
+- Always use remote backend for production/team use
+- Document modules and inputs thoroughly for easy onboarding
+- Review state files and lock as needed for safety
+
+---
+
