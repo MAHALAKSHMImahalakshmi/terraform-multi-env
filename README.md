@@ -91,14 +91,16 @@ text
 ---
 
 ## 🔄 Flowchart: Workspace & Backend Initialization
-```mermaid
+```
 flowchart TD
-A[Start: Clone repo and select environment] --> B[terraform init -backend-config={env}/backend.tf]
-B --> C[terraform workspace new {env} (if not exists)]
-C --> D[terraform workspace select {env}]
-D --> E[terraform plan -var-file={env}/{env}.tfvars]
-E --> F[terraform apply -var-file={env}/{env}.tfvars]
-F --> G[State stored remotely under {env} folder in backend (e.g. S3)]
+  A(Start: Clone repo & select env) --> B(terraform init with backend-config)
+  B --> C{Workspace exists?}
+  C -- No --> D(terraform workspace new [env])
+  D --> E(terraform workspace select [env])
+  C -- Yes --> E
+  E --> F(terraform plan with var-file)
+  F --> G(terraform apply with var-file)
+  G --> H(State saved in remote backend under [env] folder)
 ```
 
 
