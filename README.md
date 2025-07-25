@@ -1,76 +1,152 @@
-# 🌱 terraform-multi-env
+# 🌍 Terraform Multi-Environment with Workspaces & tfvars
 
-A robust template for managing multiple environments (dev, staging, prod) in Terraform using workspaces and `.tfvars` for safe, scalable IaC deployments.
-
----
-
-## 🏗️ Architecture & Workflow
-
-- Single Terraform codebase supports multiple isolated environments via workspaces.
-- Each environment is parameterized with dedicated `.tfvars` files.
-- Uses modules for reusable infrastructure logic.
-
-**Workflow**:
-1. Select or create a workspace for your environment.
-2. Apply the relevant `*.tfvars` file for environment-specific configuration.
-3. Remote backend support suggested for state isolation and team safety.
+This project demonstrates managing multiple environments (dev, prod, qa, etc.) in Terraform using **workspaces**, **environment-specific tfvars files**, and **backend configuration** for scalable and isolated infrastructure deployments.
 
 ---
 
-## ⚡ Quick Setup
+## 🛠️ Key Concepts: Terraform Workspaces & Environment Isolation
 
- ```
-git clone https://github.com/MAHALAKSHMImahalakshmi/terraform-multi-env.git
-cd terraform-multi-env
+- **Terraform Workspaces:**  
+  Enable multiple distinct state environments using the same codebase.  
+  Example: `terraform.workspace` can hold values like `"dev"`, `"prod"`, etc.
 
-terraform init
+- **tfvars Files:**  
+  Environment-specific variables stored under `tfvars/{env}.tfvars` to parameterize deployments per environment.
 
-terraform workspace new dev # Run once per workspace (dev, prod, etc.)
-terraform workspace select dev
+- **Backend Configuration:**  
+  Backend state stored remotely (e.g., S3), organized by workspace, ensuring isolated and safe state files per environment.  
 
-terraform plan -var-file=environments/dev.tfvars
-terraform apply -var-file=environments/dev.tfvars
+---
+
+## ⚙️ Workspace Basics & Commands
+
+| Command                      | Description                          |
+|-----------------------------|------------------------------------|
+| `terraform workspace list`  | Lists all available workspaces      |
+| `terraform workspace new dev`| Creates a new workspace called `dev` |
+| `terraform workspace select prod` | Switches to the `prod` workspace    |
+| `terraform workspace show`  | Shows the currently selected workspace |
+
+- When you create a workspace, Terraform will maintain separate state files per environment (e.g., dev, prod).
+- Selecting a workspace scopes your Terraform commands to that environment’s state.
+
+---
+
+## 🔍 Using Terraform Workspace in Code
+```
+resource "aws_instance" "example" {
+instance_type = lookup(
+{
+dev = "t3.micro",
+qa = "t3.small",
+prod = "t3.large"
+},
+terraform.workspace,
+"t3.micro"
+)
+
+ami = "ami-xxxxxx"
+instance_id = "i-instanceid"
+}
 ```
 
----
-
-## 🛠️ Environment Separation
-
-- Isolated environments via Terraform Workspaces (`terraform workspace` commands)
-- Unique variable definitions per environment in `environments/*.tfvars`
-- Supports adding, updating, or destroying each environment independently
+Using `terraform.workspace` in interpolation helps dynamically configure resources based on the current environment.
 
 ---
 
-## 🚀 Deployment
+## 💾 Managing Backend & State per Environment
 
-1. **Switch to desired workspace**  
-   `terraform workspace select <env>`
-2. **Plan & apply with corresponding tfvars**  
-   `terraform plan -var-file=environments/<env>.tfvars`  
-   `terraform apply -var-file=environments/<env>.tfvars`
+Backend configuration files are stored under each environment’s folder, e.g., `dev/backend.tf`, `prod/backend.tf`. This enables:
 
----
-
-## 📁 Project Structure
-
-| Path                   | Purpose                                        |
-|------------------------|------------------------------------------------|
-| `main.tf`              | Core Terraform resources and modules           |
-| `variables.tf`         | Input variables definition                     |
-| `environments/`        | Environment-specific `.tfvars` files           |
-| `modules/`             | Shared/reusable Terraform modules              |
-| `.gitignore`           | Excludes sensitive or rebuildable files        |
-| `README.md`            | Project documentation                          |
+- State files saved under separate folders or prefixes in a remote backend (like S3 bucket) named by workspace.
+- Safe isolation to prevent state overwrites between environments.
 
 ---
 
-## 💡 Best Practices
+## 🚀 Typical Workflow per Environment
 
-- Parameterize everything—never hard-code environment values
-- Always use remote backend for production/team use
-- Document modules and inputs thoroughly for easy onboarding
-- Review state files and lock as needed for safety
+Initialize Terraform with backend config for the dev environment
+terraform init -backend-config=dev/backend.tf
+
+Plan applying with dev specific variables
+terraform plan -var-file=dev/dev.tfvars
+
+Apply changes in dev environment
+terraform apply -var-file=dev/dev.tfvars -auto-approve
+
+(Optional) Destroy environment safely
+terraform destroy -var-file=dev/dev.tfvars -auto-approve
+
+text
+
+To switch to prod environment:
+
+terraform init -reconfigure -backend-config=prod/backend.tf
+terraform workspace select prod
+terraform plan -var-file=prod/prod.tfvars
+terraform apply -var-file=prod/prod.tfvars -auto-approve
+
+text
 
 ---
 
+## 🔄 Mermaid Flowchart: Workspace & Backend Initialization
+
+flowchart TD
+A[Start: Clone repo and select environment] --> B[terraform init -backend-config={env}/backend.tf]
+B --> C[terraform workspace new {env} (if not exists)]
+C --> D[terraform workspace select {env}]
+D --> E[terraform plan -var-file={env}/{env}.tfvars]
+E --> F[terraform apply -var-file={env}/{env}.tfvars]
+F --> G[State stored remotely under {env} folder in backend (e.g. S3)]
+
+text
+
+*Example*: `{env}` can be `dev`, `prod`, or `qa`.
+
+---
+
+## 🗂️ Folder Structure Overview
+
+| Folder/File      | Description                                  |
+|------------------|----------------------------------------------|
+| `workspaces/`    | Contains workspace-specific backend configs  |
+| `tfvars/`        | Environment variable definitions for tfvars  |
+| `main.tf`        | Core Terraform configurations and resources  |
+| `variables.tf`   | Variable declarations for dynamic config     |
+| `outputs.tf`     | Outputs per environment                       |
+
+---
+
+## 🔑 Best Practices
+
+- **Always use workspaces to isolate environments**—keep state files separate to avoid conflicts.
+- Use **environment-specific `.tfvars` files** for clear and safe configuration management.
+- **Keep backend config files per environment** for clean separation of state and secure remote storage.
+- Use `terraform.workspace` interpolation to dynamically adjust resource parameters.
+- Automate workspace creation and selection via scripts for safer CI/CD pipelines.
+
+---
+
+## 📦 Example Commands Summary
+
+Create and switch to dev workspace
+```
+ terraform workspace new dev
+terraform workspace select dev
+```
+
+Plan and apply in dev environment using tfvars
+```
+terraform plan -var-file=dev/dev.tfvars
+terraform apply -var-file=dev/dev.tfvars -auto-approve
+```
+Switch to prod workspace and reinitialize backend
+```
+terraform init -reconfigure -backend-config=prod/backend.tf
+```
+terraform workspace select prod
+```
+terraform plan -var-file=prod/prod.tfvars
+terraform apply -var-file=prod/prod.tfvars -auto-approve
+```
