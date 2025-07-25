@@ -90,8 +90,8 @@ text
 
 ---
 
-## 🔄 Mermaid Flowchart: Workspace & Backend Initialization
-
+## 🔄 Flowchart: Workspace & Backend Initialization
+```mermaid
 flowchart TD
 A[Start: Clone repo and select environment] --> B[terraform init -backend-config={env}/backend.tf]
 B --> C[terraform workspace new {env} (if not exists)]
@@ -99,8 +99,8 @@ C --> D[terraform workspace select {env}]
 D --> E[terraform plan -var-file={env}/{env}.tfvars]
 E --> F[terraform apply -var-file={env}/{env}.tfvars]
 F --> G[State stored remotely under {env} folder in backend (e.g. S3)]
+```
 
-text
 
 *Example*: `{env}` can be `dev`, `prod`, or `qa`.
 
